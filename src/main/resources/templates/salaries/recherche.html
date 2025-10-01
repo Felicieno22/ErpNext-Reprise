@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Recherche des Bulletins de Salaire')}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar('salaries')}"></div>
+<div class="container mt-4">
+    <h1 class="mb-4">Recherche des Bulletins de Salaire</h1>
+    <form th:action="@{/salaries/recherche}" method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="minSalaire" class="form-label">Salaire net &ge;</label>
+            <input type="number" step="0.01" class="form-control" id="minSalaire" name="minSalaire" th:value="${minSalaire}">
+        </div>
+        <div class="col-md-3">
+            <label for="maxSalaire" class="form-label">Salaire net &le;</label>
+            <input type="number" step="0.01" class="form-control" id="maxSalaire" name="maxSalaire" th:value="${maxSalaire}">
+        </div>
+        <div class="col-md-2">
+            <label for="mois" class="form-label">Mois</label>
+            <select class="form-select" id="mois" name="mois">
+                <option value="">Tous</option>
+                <option th:each="m : ${#numbers.sequence(1,12)}" th:value="${m}" th:text="${m}" th:selected="${mois == m}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="annee" class="form-label">Année</label>
+            <input type="number" class="form-control" id="annee" name="annee" th:value="${annee}">
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+        </div>
+    </form>
+    <div class="table-responsive" th:if="${salarySlips != null}">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Employé</th>
+                <th>Mois</th>
+                <th>Année</th>
+                <th>Salaire net</th>
+                <th>Détails</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="slip : ${salarySlips}">
+                <td th:text="${slip.employeeName}"></td>
+                <td th:text="${slip?.startDate != null ? #temporals.format(slip.startDate, 'dd/MM/yyyy') : '-'} + ' - ' + (${slip?.endDate != null ? #temporals.format(slip.endDate, 'dd/MM/yyyy') : '-'})"></td>
+                <td th:text="${slip.netPay}"></td>
+                <td><a th:href="@{'/salaries/details/' + ${slip.name}}" class="btn btn-sm btn-info">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${salarySlips.empty}" class="alert alert-info">Aucun résultat trouvé.</div>
+    </div>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>
+
+
+

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Importation de Fichiers')}"></head>
+<style>
+    .import-form {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .form-title {
+        margin-bottom: 25px;
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .btn-import {
+        padding: 10px 25px;
+        font-weight: 600;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('import')}"></div>
+
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Importation de Fichiers CSV</h1>
+        
+        <!-- Messages d'alerte -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Formulaire d'importation avec sélection de fichiers -->
+        <div class="import-form">
+            <h3 class="form-title">Sélectionnez les fichiers CSV à importer</h3>
+            
+            <form method="post" action="/import/upload" class="mb-4" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="employeeFile" class="form-label"><strong>Fichier des employés (CSV)</strong></label>
+                    <input type="file" class="form-control form-control-lg" id="employeeFile" name="employeeFile" accept=".csv">
+                    <div class="form-text">Format attendu: employee_name, department, designation, company, status</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="salaryStructureFile" class="form-label"><strong>Fichier des structures de salaire (CSV)</strong></label>
+                    <input type="file" class="form-control form-control-lg" id="salaryStructureFile" name="salaryStructureFile" accept=".csv">
+                    <div class="form-text">Format attendu: name, salary_component, amount_type, amount, is_earning</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="salaryMonthlyFile" class="form-label"><strong>Fichier des bulletins de salaire (CSV)</strong></label>
+                    <input type="file" class="form-control form-control-lg" id="salaryMonthlyFile" name="salaryMonthlyFile" accept=".csv">
+                    <div class="form-text">Format attendu: employee, start_date, end_date, salary_structure, payment_days</div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="/home" class="btn btn-secondary">Retour à l'accueil</a>
+                    <button type="submit" class="btn btn-primary btn-import">Importer les fichiers</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Instructions d'importation -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Instructions d'importation</h5>
+            </div>
+            <div class="card-body">
+                <h6>Comment importer des données ?</h6>
+                <ol>
+                    <li>Préparez vos fichiers CSV selon les formats requis indiqués ci-dessus.</li>
+                    <li>Vous pouvez soit télécharger directement les fichiers, soit spécifier leurs chemins sur le serveur.</li>
+                    <li>Si vous spécifiez un chemin, assurez-vous que le fichier existe et est accessible par l'application.</li>
+                    <li>Cliquez sur "Importer les fichiers" pour lancer l'importation.</li>
+                    <li>Le système validera d'abord les données avant de les importer.</li>
+                    <li>En cas d'erreur, un message détaillé s'affichera.</li>
+                </ol>
+                
+                <h6 class="mt-4">Ordre d'importation recommandé</h6>
+                <p>Pour éviter les erreurs de référence, nous recommandons d'importer les données dans cet ordre :</p>
+                <ol>
+                    <li>Employés</li>
+                    <li>Structures de salaire</li>
+                    <li>Bulletins de salaire</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

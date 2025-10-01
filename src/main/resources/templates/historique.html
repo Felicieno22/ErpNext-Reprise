@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Historique des Activités')}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar('historique')}"></div>
+<div class="container mt-4">
+    <h1 class="mb-4">Historique des Activités</h1>
+    <div class="table-responsive" th:if="${!historiques.empty}">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Utilisateur</th>
+                <th>Type d'opération</th>
+                <th>Détails</th>
+                <th>Réponse ERPNext</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="h : ${historiques}">
+                <td th:text="${#temporals.format(h.dateModification, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${h.utilisateur}"></td>
+                <td th:text="${h.typeOperation}"></td>
+                <td th:text="${h.details}"></td>
+                <td>
+                    <pre th:text="${h.erpnextResponse}" style="white-space: pre-wrap; word-break: break-all;"></pre>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="alert alert-info" th:if="${historiques.empty}">
+        <p class="mb-0">Aucune activité enregistrée pour le moment.</p>
+    </div>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html> 

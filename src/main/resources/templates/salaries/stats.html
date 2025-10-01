@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Statistiques Salaires')}">
+    <style>
+        .salary-table th, .salary-table td { text-align: center; vertical-align: middle; }
+        .filter-form { max-width: 350px; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <h2 class="mb-4">Statistiques des salaires</h2>
+    <!-- Filtre Année -->
+    <form class="filter-form mb-4" method="get" th:action="@{/salaries/stats}">
+    <div class="input-group">
+        <label class="input-group-text" for="yearSelect">Année</label>
+        <select class="form-select" id="yearSelect" name="year">
+            <option th:each="y : ${#numbers.sequence(selectedYear-5, selectedYear+1)}" th:value="${y}" th:text="${y}" th:selected="${y == selectedYear}"></option>
+        </select>
+        <button class="btn btn-primary" type="submit">Filtrer</button>
+    </div>
+</form>
+
+    <!-- Graphique d'évolution dynamique -->
+    <div class="my-5">
+        <h4 class="mb-3">Évolution des salaires mensuels</h4>
+        <div class="card p-4">
+            <div th:if="${#lists.isEmpty(monthlyStats)}">
+                <div class="alert alert-info">Aucune donnée à afficher pour le graphique.</div>
+            </div>
+            <div th:if="${!#lists.isEmpty(monthlyStats)}">
+                <canvas id="salaryChart" style="max-width:800px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Prépare les labels et datasets depuis monthlyStats
+    let chartLabels = [[${labels}]];
+    let baseData = [[${monthlyStatsBase}]];
+    let netData = [[${monthlyStatsNet}]];
+    let deductionsData = [[${monthlyStatsRetenue}]];
+    
+    if (document.getElementById('salaryChart')) {
+      const ctx = document.getElementById('salaryChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [
+            {
+              label: 'Salaire de base',
+              data: baseData,
+              borderColor: '#007bff',
+              backgroundColor: 'rgba(0,123,255,0.1)',
+              fill: false,
+              tension: 0.2
+            },
+            {
+              label: 'Salaire Net',
+              data: netData,
+              borderColor: '#28a745',
+              backgroundColor: 'rgba(40,167,69,0.1)',
+              fill: false,
+              tension: 0.2
+            },
+            {
+              label: 'Déductions',
+              data: deductionsData,
+              borderColor: '#dc3545',
+              backgroundColor: 'rgba(220,53,69,0.1)',
+              fill: false,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Évolution mensuelle (année ' + [[${selectedYear}]] + ')' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Montant (€)' }
+            },
+            x: {
+              title: { display: true, text: 'Mois' }
+            }
+          }
+        }
+      });
+    }
+    /*]]>*/
+    </script>
+
+    <!-- Tableau des statistiques -->
+    <div class="table-responsive">
+        <table class="table table-bordered salary-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Mois</th>
+                    <th>Total salaires Brut</th>
+                    <th>Base</th>
+                    <!-- <th>Prime</th> -->
+                    <th>Indemnité</th>
+                    <th>Retenue</th>
+                    <!-- Ajouter dynamiquement d'autres éléments si besoin -->
+                </tr>
+            </thead>
+            <tbody>
+            <tr th:each="stat, statStat : ${monthlyStats}">
+                <td th:text="${labels[statStat.index]}"></td>
+                <td>
+                    <a th:href="@{'/salaries/table?month=' + (${stat.month < 10 ? '0' + stat.month : stat.month}) + '&year=' + ${stat.year}}"
+                       class="text-decoration-underline fw-semibold" style="cursor:pointer;"
+                       th:text="${#numbers.formatDecimal(stat.totalGross, 1, 'COMMA', 2, 'POINT')} + ' €'"></a>
+                </td>
+                <td th:text="${#numbers.formatDecimal(stat.totalBase, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+                <!-- <td th:text="${#numbers.formatDecimal(stat.totalPrime, 1, 'COMMA', 2, 'POINT')} + ' €'"></td> -->
+                <td th:text="${#numbers.formatDecimal(stat.totalIndemnite, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+                <td th:text="${#numbers.formatDecimal(stat.totalRetenue, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+            </tr>
+        </tbody>
+            <tfoot class="table-secondary">
+            <tr>
+                <th>Total Année</th>
+                <th>
+    <a th:href="@{'/salaries/table?year=' + ${selectedYear}}"
+       class="text-decoration-underline fw-semibold" style="cursor:pointer; color:inherit;">
+        <span th:text="${#numbers.formatDecimal(yearlyStats.totalGross, 1, 'COMMA', 2, 'POINT')} + ' €'"></span>
+    </a>
+</th>
+                <th th:text="${#numbers.formatDecimal(yearlyStats.totalBase, 1, 'COMMA', 2, 'POINT')} + ' €'"></th>
+                <!-- <th th:text="${#numbers.formatDecimal(yearlyStats.totalPrime, 1, 'COMMA', 2, 'POINT')} + ' €'"></th> -->
+                <th th:text="${#numbers.formatDecimal(yearlyStats.totalIndemnite, 1, 'COMMA', 2, 'POINT')} + ' €'"></th>
+                <th th:text="${#numbers.formatDecimal(yearlyStats.totalRetenue, 1, 'COMMA', 2, 'POINT')} + ' €'"></th>
+            </tr>
+        </tfoot>
+        </table>
+    </div>
+    <!-- Graphique d'évolution (maquette) -->
+    <!-- <div class="my-5">
+        <h4 class="mb-3">Évolution des salaires mensuels</h4>
+        <div class="card p-4">
+             Maquette graphique : remplacer par un vrai graphique JS plus tard -->
+            <!-- <img src="https://dummyimage.com/800x300/cccccc/888888&text=Graphique+%C3%A9volution+des+salaires" alt="Graphique évolution salaires" class="img-fluid mx-auto d-block" style="max-width:800px;"> -->
+            <!-- <div class="text-center mt-2 text-muted">(Graphique d'évolution des salaires et éléments de salaire par mois)</div> -->
+        <!-- </div> -->
+    <!-- </div>  -->
+</div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Tableau des Salaires')}"></head>
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 1;
+        border: 1px solid #dee2e6;
+    }
+    .table td {
+        border: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: #f2f2f2;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #e2e6ea;
+    }
+    .table thead th {
+        text-align: center;
+    }
+    .total-row {
+        font-weight: bold;
+        background-color: #e9ecef;
+    }
+    .salary-component {
+        font-size: 0.9rem;
+    }
+    .text-right {
+        text-align: right;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .export-buttons {
+        margin-bottom: 15px;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('table')}"></div>
+
+    <div class="container-fluid mt-4">
+        <h1 class="mb-4">Tableau des Salaires</h1>
+        
+        <!-- Messages d'alerte -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${param.success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Section de filtrage -->
+        <div class="filter-section">
+            <form method="get" action="/salaries/table" class="row g-3">
+                <div class="col-md-5">
+                    <label for="month" class="form-label">Mois</label>
+                    <select class="form-select" id="month" name="month">
+    <option value="">Tous les mois</option>
+    <option value="01" th:selected="${selectedMonth == '01'}">Janvier</option>
+    <option value="02" th:selected="${selectedMonth == '02'}">Février</option>
+    <option value="03" th:selected="${selectedMonth == '03'}">Mars</option>
+    <option value="04" th:selected="${selectedMonth == '04'}">Avril</option>
+    <option value="05" th:selected="${selectedMonth == '05'}">Mai</option>
+    <option value="06" th:selected="${selectedMonth == '06'}">Juin</option>
+    <option value="07" th:selected="${selectedMonth == '07'}">Juillet</option>
+    <option value="08" th:selected="${selectedMonth == '08'}">Août</option>
+    <option value="09" th:selected="${selectedMonth == '09'}">Septembre</option>
+    <option value="10" th:selected="${selectedMonth == '10'}">Octobre</option>
+    <option value="11" th:selected="${selectedMonth == '11'}">Novembre</option>
+    <option value="12" th:selected="${selectedMonth == '12'}">Décembre</option>
+</select>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="year" class="form-label">Année</label>
+                    <select class="form-select" id="year" name="year">
+                        <option value="">Toutes les années</option>
+                        <option th:each="y : ${years}" 
+                                th:value="${y}" 
+                                th:text="${y}"
+                                th:selected="${y == selectedYear}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="w-100">
+                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Boutons d'export -->
+        <div class="export-buttons d-flex justify-content-end">
+            <a href="#" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-file-earmark-excel"></i> Exporter en Excel
+            </a>
+            <a href="#" class="btn btn-outline-secondary">
+                <i class="bi bi-file-earmark-pdf"></i> Exporter en PDF
+            </a>
+        </div>
+        
+        <!-- Tableau des salaires -->
+        <div class="table-responsive" th:if="${!salaryTableEntries.empty}">
+            <table class="table table-striped table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Employé</th>
+            <th>Période</th>
+            <th>Salaire de Base</th>
+            <th>Primes</th>
+            <th>Indemnités</th>
+            <th>Brut</th>
+            <th>Retenues</th>
+            <th>Net à Payer</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="entry : ${salaryTableEntries}">
+            <td th:text="${entry.employeeName}"></td>
+            <td class="text-center" th:text="${entry.period != null ? entry.period : '-'}"></td>
+            <td class="text-end" th:text="${entry.baseSalaryFromComponent != null ? #numbers.formatDecimal(entry.baseSalaryFromComponent, 1, 'COMMA', 2, 'POINT') + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.primeAmount != null ? #numbers.formatDecimal(entry.primeAmount, 1, 'COMMA', 2, 'POINT') + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.indemniteAmount != null ? #numbers.formatDecimal(entry.indemniteAmount, 1, 'COMMA', 2, 'POINT') + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.grossPay != null ? entry.grossPay + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.retenueAmount != null ? #numbers.formatDecimal(entry.retenueAmount, 1, 'COMMA', 2, 'POINT') + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.netPay != null ? entry.netPay + ' €' : '-'}"></td>
+            <td class="text-end" th:text="${entry.totalAmount != null ? #numbers.formatDecimal(entry.totalAmount, 1, 'COMMA', 2, 'POINT') + ' €' : '-'}"></td>
+            <td class="text-center">
+                <a th:href="@{'/salaries/details?id=' + ${entry.salarySlipId}}" class="btn btn-sm btn-primary" title="Voir les détails">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <a th:href="@{'/salaries/pdf/' + ${entry.salarySlipId}}" class="btn btn-sm btn-secondary" target="_blank">
+                    <i class="bi bi-file-pdf"></i>
+                </a>
+            </td>
+        </tr>
+        <tr class="total-row">
+            <td th:text="${totalRow.employeeName}"></td>
+            <td></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.baseSalaryFromComponent)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.primeAmount)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.indemniteAmount)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.grossPay)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.retenueAmount)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.netPay)}"></td>
+            <td class="text-end" th:text="${T(com.erpnext.model.SalaryTableEntry).formatEuro(totalRow.totalAmount)}"></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+        </div>
+        
+        <div class="alert alert-info" th:if="${salaryTableEntries.empty}">
+            <p class="mb-0">Aucune donnée de salaire trouvée avec les critères sélectionnés.</p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

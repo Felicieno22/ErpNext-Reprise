@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Confirmer l\'importation')}"></head>
+<style>
+    .confirm-card {
+        border: 1px solid #ddd;
+        border-radius: .25rem;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+    .file-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .file-info:last-child {
+        border-bottom: none;
+    }
+    .file-name {
+        font-weight: bold;
+    }
+    .line-count {
+        font-style: italic;
+        color: #555;
+    }
+</style>
+<body>
+<div th:replace="~{fragments/header :: navbar('import')}"></div>
+
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Confirmer l'importation</h1>
+
+    <div class="confirm-card">
+        <p>Veuillez vérifier le nombre de lignes à importer pour chaque fichier. Les en-têtes de colonnes ne sont pas comptabilisés.</p>
+
+        <div th:if="${lineCounts != null and !lineCounts.isEmpty()}">
+            <div th:each="entry : ${lineCounts}" class="file-info">
+                <span class="file-name" th:text="${originalFileNames[entry.key]}"></span>
+                <span class="line-count" th:text="${entry.value} + ' lignes'"></span>
+            </div>
+        </div>
+        <div th:if="${lineCounts == null or lineCounts.isEmpty()}">
+            <p class="text-muted">Aucun fichier à importer.</p>
+        </div>
+    </div>
+
+    <form th:action="@{/import/execute}" method="post" class="mt-4">
+        <div th:if="${tempFilePaths != null}">
+            <input type="hidden" th:each="entry : ${tempFilePaths}" th:name="${entry.key}" th:value="${entry.value}" />
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Confirmer l'importation</button>
+            <a th:href="@{/import}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

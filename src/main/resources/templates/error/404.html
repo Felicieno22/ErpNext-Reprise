@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur 404 - Page non trouvée</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+            line-height: 1.6;
+        }
+        .error-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 36px;
+            margin: 0;
+            color: #FF5733;
+        }
+        .error-code {
+            font-size: 100px;
+            font-weight: bold;
+            color: #FF5733;
+            margin: 20px 0;
+        }
+        .error-details {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: left;
+            border-left: 4px solid #FF5733;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #5bc0de;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .back-link:hover {
+            background-color: #46b8da;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <h1>Page non trouvée</h1>
+        <p>La page que vous cherchez n'existe pas ou a été déplacée.</p>
+        
+        <div class="error-details" th:if="${errorMessage}">
+            <h3>Détails de l'erreur :</h3>
+            <p th:text="${errorMessage}">Message d'erreur</p>
+            <p th:if="${path}">Chemin demandé: <span th:text="${path}"></span></p>
+            <p th:if="${timestamp}">Horodatage: <span th:text="${#dates.format(new java.util.Date(timestamp), 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+        </div>
+        
+        <a href="/home" class="back-link">Retour à l'accueil</a>
+    </div>
+</body>
+</html>

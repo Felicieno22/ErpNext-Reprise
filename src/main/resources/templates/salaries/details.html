@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Détails du Bulletin de Salaire')}"></head>
+<style>
+    .salary-header {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .salary-info {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .info-item {
+        flex: 1 0 50%;
+        margin-bottom: 10px;
+    }
+    .info-label {
+        font-weight: bold;
+        color: #495057;
+    }
+    .component-table th {
+        background-color: #343a40;
+        color: white;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .status-draft {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+    .total-row {
+        font-weight: bold;
+        background-color: #f8f9fa;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('salaries')}"></div>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Bulletin de Salaire</h1>
+            <div>
+                <a th:href="@{'/salaries/pdf/' + ${salarySlip.name}}" class="btn btn-primary" target="_blank">
+                    <i class="bi bi-file-pdf"></i> Télécharger PDF
+                </a>
+                <a href="/salaries/list" class="btn btn-secondary ms-2">
+                    <i class="bi bi-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+        
+        <!-- Messages d'alerte -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${param.success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Informations sur le bulletin -->
+        <div class="salary-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 th:text="${salarySlip.name}" class="mb-0"></h4>
+
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="salary-info">
+                        <div class="info-item">
+                            <span class="info-label">Employé:</span>
+                            <span th:text="${employee.employeeName != null ? employee.employeeName : '-'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Structure de salaire:</span>
+                            <span th:text="${salarySlip.salaryStructure}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Entreprise:</span>
+                            <span th:text="${salarySlip.company}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Date de paiement:</span>
+                            <span th:text="${salarySlip.postingDate != null ? #temporals.format(salarySlip.postingDate, 'dd/MM/yyyy') : '-'}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="salary-info">
+                        <div class="info-item">
+                            <span class="info-label">Période:</span>
+                            <span th:text="|${salarySlip.startDate != null ? #temporals.format(salarySlip.startDate, 'dd/MM/yyyy') : '-'} - ${salarySlip.endDate != null ? #temporals.format(salarySlip.endDate, 'dd/MM/yyyy') : '-'}|"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Jours travaillés:</span>
+                            <span th:text="${salarySlip.totalWorkingDays != null ? salarySlip.totalWorkingDays : '-'}"></span>
+                        </div>
+                        <div class="info-item">
+    <span class="info-label">Salaire de Base :</span>
+    <span th:text="${baseSalaryFromComponent != null ? #numbers.formatDecimal(baseSalaryFromComponent, 1, 2) + ' €' : '-'}"></span>
+
+</div>
+                        <div class="info-item">
+                            <span class="info-label">Total Brut :</span>
+                            <span th:text="${salarySlip.grossPay != null ? salarySlip.grossPay + ' €' : '-'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Total Déductions :</span>
+                            <span th:text="${salarySlip.totalDeduction != null ? salarySlip.totalDeduction + ' €' : '-'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Net à Payer :</span>
+                            <span th:text="${salarySlip.netPay != null ? salarySlip.netPay + ' €' : '-'}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Détails des composants du salaire -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Détails des composants</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Composants positifs (revenus) -->
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Revenus</h6>
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Composant</th>
+                                    <th>Montant (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+    <tr th:each="comp : ${earnings}">
+        <td th:text="${comp.salaryComponent}"></td>
+        <td class="text-end" th:text="${#numbers.formatDecimal(comp.amount, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+    </tr>
+    <tr class="total-row">
+        <td><b>Total des revenus</b></td>
+        <td class="text-end" th:text="${salarySlip.grossPay != null ? salarySlip.grossPay + ' €' : '-'}"></td>
+    </tr>
+</tbody>
+</table>
+                    </div>
+                    
+                    <!-- Composants négatifs (déductions) -->
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Déductions</h6>
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Composant</th>
+                                    <th class="text-end">Montant (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+    <tr th:each="comp : ${deductions}">
+        <td th:text="${comp.salaryComponent}"></td>
+        <td class="text-end" th:text="${#numbers.formatDecimal(comp.amount, 1, 'COMMA', 2, 'POINT')} + ' €' "></td>
+    </tr>
+    <tr class="total-row">
+        <td><b>Total des déductions</b></td>
+        <td class="text-end" th:text="${salarySlip.totalDeduction != null ? salarySlip.totalDeduction + ' €' : '-'}"></td>
+    </tr>
+</tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Résumé -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>Salaire net à payer</h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <h5 th:text="${salarySlip.netPay != null ? salarySlip.netPay + ' €' : '-'}"></h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations sur l'employé -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Informations sur l'employé</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="salary-info">
+                            <div class="info-item">
+                                <span class="info-label">Nom:</span>
+                                <span th:text="${employee.employeeName}"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ID:</span>
+                                <span th:text="${employee.id}"></span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="salary-info">
+
+                            <div class="info-item">
+                                <span class="info-label">Statut:</span>
+                                <span th:text="${employee.status}"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Entreprise:</span>
+                                <span th:text="${employee.company}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a th:href="@{'/employees/' + ${employee.id} + '/details'}" class="btn btn-outline-secondary">
+                        Voir le profil complet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Liste des Employés')}"></head>
+<style>
+    .filter-form {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .filter-form .form-group {
+        margin-bottom: 10px;
+    }
+    .employee-table th {
+        background-color: #343a40;
+        color: white;
+    }
+    .search-box {
+        position: relative;
+    }
+    .search-box .form-control {
+        padding-right: 35px;
+    }
+    .search-box .search-icon {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        color: #6c757d;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('employees')}"></div>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Liste des Employés</h1>
+        
+        <!-- Formulaire de filtrage -->
+        <div class="filter-form">
+            <form method="get" action="/employees/list" class="row g-3">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <label for="searchTerm">Recherche par nom</label>
+                        <div class="search-box">
+                            <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                                   placeholder="Rechercher un employé..." th:value="${currentSearchTerm}">
+                            <span class="search-icon">🔍</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-group w-100">
+                        <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Tableau des employés -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover employee-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Département</th>
+                        <th>Statut</th>
+                        <th>Entreprise</th>
+                        <th>Poste</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${employees.empty}">
+                        <td colspan="7" class="text-center">Aucun employé trouvé</td>
+                    </tr>
+                    <tr th:each="employee : ${employees}">
+                        <td th:text="${employee.id}" class="text-break"></td>
+                        <td th:text="${employee.employeeName}" class="text-break"></td>
+                        <td th:text="${employee.department}" class="text-break"></td>
+                        <td>
+                            <span th:if="${employee.status == 'Active'}" class="badge bg-success">Actif</span>
+                            <span th:if="${employee.status == 'Inactive'}" class="badge bg-danger">Inactif</span>
+                            <span th:if="${employee.status != 'Active' and employee.status != 'Inactive'}" 
+                                  th:text="${employee.status}" class="badge bg-secondary"></span>
+                        </td>
+                        <td th:text="${employee.company}" class="text-break"></td>
+                        <td th:text="${employee.designation}" class="text-break"></td>
+                        <td>
+                            <div class="btn-group">
+                                <a th:href="@{'/employees/' + ${employee.id} + '/details'}" class="btn btn-primary btn-sm">
+                                    Détails
+                                </a>
+                                <button class="btn btn-secondary btn-sm"
+                                        th:data-employee-id="${employee.id}"
+                                        th:data-employee-name="${#strings.escapeJavaScript(employee.employeeName)}"
+                                        th:onclick="'showEmployeeOptions(this.dataset.employeeId, this.dataset.employeeName)'">
+                                    Options
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Div d'options pour l'employé sélectionné -->
+        <div id="employeeOptionsDiv" class="card mt-4" style="display: none;">
+            <div class="card-body">
+                <h5 id="employeeOptionsTitle" class="card-title">Options pour l'employé</h5>
+                <div class="d-flex gap-2">
+                    <a id="btnViewSalary" class="btn btn-outline-primary">Voir salaire</a>
+                    <a id="btnViewAttendance" class="btn btn-outline-success">Voir présences</a>
+                    <a id="btnEditEmployee" class="btn btn-outline-secondary">Modifier</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showEmployeeOptions(employeeId, employeeName) {
+            $('#employeeOptionsTitle').text("Employé : " + employeeName);
+            $('#btnViewSalary').attr('href', '/employees/' + encodeURIComponent(employeeId) + '/salary');
+            $('#btnViewAttendance').attr('href', '/employees/' + encodeURIComponent(employeeId) + '/attendance');
+            $('#btnEditEmployee').attr('href', '/employees/' + encodeURIComponent(employeeId) + '/edit');
+            $('#employeeOptionsDiv').slideDown();
+        }
+        
+        // Aucun auto-submit nécessaire car il n'y a plus de filtres déroulants
+    </script>
+    
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

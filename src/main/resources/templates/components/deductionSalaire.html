@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Mise à jour du Salaire de Base')}"></head>
+<body>
+    <div th:replace="~{fragments/header :: navbar('salaries')}"></div>
+    <div class="container mt-4">
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <!-- <div th:if="${existingSalarySlips}">
+            <h6>Deduction</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Employé</th>
+                            <th>Période</th>
+                            <th>Salaire brut</th>
+                            <th>Salaire net</th>
+                            <th>Composants</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="slip : ${existingSalarySlips}">
+                            <td th:text="${slip.employeeName}"></td>
+                            <td th:text="${slip.payPeriod}"></td>
+                            <td th:text="${slip.grossPay}"></td>
+                            <td th:text="${slip.netPay}"></td>
+                            <td>
+                                <span th:each="comp : ${slip.earnings}" th:text="${comp.salaryComponent} + ' (' + comp.amount + ')'" th:unless="${#lists.isEmpty(slip.earnings)}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div> -->
+        <div th:fragment="_">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Deduction salaire de base</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" th:action="@{/deduction/deductionSalaire}" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="salaryComponent" class="form-label">Deduction</label>
+                            <select class="form-select" id="salaryComponent" name="salaryComponent" required>
+                                <option th:each="comp : ${salaryComponents}" th:value="${comp}" th:text="${comp}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="mois" class="form-label">Mois</label>
+                            <div class="input-group">
+                                 <select class="form-select" id="month" name="month">
+                                    <option value="">Tous les mois</option>
+                                    <option value="01" th:selected="${selectedMonth == '01'}">Janvier</option>
+                                    <option value="02" th:selected="${selectedMonth == '02'}">Février</option>
+                                    <option value="03" th:selected="${selectedMonth == '03'}">Mars</option>
+                                    <option value="04" th:selected="${selectedMonth == '04'}">Avril</option>
+                                    <option value="05" th:selected="${selectedMonth == '05'}">Mai</option>
+                                    <option value="06" th:selected="${selectedMonth == '06'}">Juin</option>
+                                    <option value="07" th:selected="${selectedMonth == '07'}">Juillet</option>
+                                    <option value="08" th:selected="${selectedMonth == '08'}">Août</option>
+                                    <option value="09" th:selected="${selectedMonth == '09'}">Septembre</option>
+                                    <option value="10" th:selected="${selectedMonth == '10'}">Octobre</option>
+                                    <option value="11" th:selected="${selectedMonth == '11'}">Novembre</option>
+                                    <option value="12" th:selected="${selectedMonth == '12'}">Décembre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="pourcentage" class="form-label">Pourcentage</label>
+                            <div class="input-group">
+                                <select class="form-select" id="sign" name="sign" style="max-width: 70px;">
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                </select>
+                                <input type="number" step="0.01" class="form-control" id="pourcentage" name="pourcentage" placeholder="%" min="0" max="100">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">Mettre à jour</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html> 

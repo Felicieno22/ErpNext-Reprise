@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Accueil')}"></head>
+<body>
+    <div th:replace="~{fragments/header :: navbar('home')}"></div>
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Bienvenue dans le Portal ERPNext</h1>
+        <div class="mt-5">
+            <h3>Gestion des Ressources Humaines</h3>
+            <div class="list-group">
+                <a href="/employees/list" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Gestion des Employés</h5>
+                        <p class="mb-1">Consulter, ajouter et modifier les informations des employés</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">→</span>
+                </a>
+                <a href="/salaries/list" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Bulletins de Salaire</h5>
+                        <p class="mb-1">Consulter et gérer les bulletins de salaire de tous les employés</p>
+                    </div>
+                    <span class="badge bg-success rounded-pill">→</span>
+                </a>
+                <a href="/salaries/table" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Tableau des Salaires</h5>
+                        <p class="mb-1">Visualiser les salaires sous forme de tableau avec filtrage par mois</p>
+                    </div>
+                    <span class="badge bg-warning rounded-pill">→</span>
+                </a>
+                <a href="/import" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Importation de Données</h5>
+                        <p class="mb-1">Importer des données depuis des fichiers CSV (employés, structures de salaire, bulletins)</p>
+                    </div>
+                    <span class="badge bg-info rounded-pill">→</span>
+                </a>
+                <a href="salaries/stats" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Statistiques</h5>
+                        <p class="mb-1">Consulter les statistiques des bulletins de salaire</p>
+                    </div>
+                    <span class="badge bg-danger rounded-pill">→</span>
+                </a>
+                <a href="/salaries/update-base" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Mise à jour du Salaire de Base</h5>
+                        <p class="mb-1">Modifier le salaire de base de tous les employés selon un composant</p>
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">→</span>
+                </a>
+                <a href="/salaries/recherche" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">Recherche salaire</h5>
+                        <p class="mb-1">Recherche salaire</p>
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">→</span>
+                </a>
+            </div>
+            <div class="mt-4">
+                <!-- Supprimer ce bouton en double -->
+                <button class="btn btn-outline-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="deductionForm" aria-expanded="false" aria-controls="deductionForm">
+                    Deduire salaire du mois
+                </button>
+                <div class="collapse" id="deductionForm">
+                    <div th:replace="~{components/deductionSalaire :: _}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

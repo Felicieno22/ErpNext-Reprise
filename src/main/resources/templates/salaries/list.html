@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Liste des Bulletins de Salaire')}"></head>
+<style>
+    .salary-card {
+        transition: transform 0.2s;
+    }
+    .salary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .status-draft {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('salaries')}"></div>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Liste des Bulletins de Salaire</h1>
+        <!-- <div th:replace="~{components/update-base-salary :: _}"></div> -->
+        
+        <!-- Messages d'alerte -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${param.success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Section de filtrage -->
+        <div class="filter-section">
+            <form method="get" action="/salaries/list" class="row g-3">
+                <div class="col-md-3">
+                    <label for="employee" class="form-label">Employé</label>
+                    <select class="form-select" id="employee" name="employee">
+                        <option value="">Tous les employés</option>
+                        <option th:each="emp : ${employees}" 
+                                th:value="${emp.employeeName}" 
+                                th:text="${emp.employeeName}"
+                                th:selected="${emp.employeeName == currentEmployee}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="month" class="form-label">Mois</label>
+                    <select class="form-select" id="month" name="month">
+                        <option value="">Tous les mois</option>
+                        <option th:each="m : ${months}"
+        th:value="${m}"
+        th:text="${T(java.time.Month).of(m).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).FRENCH)}"
+        th:selected="${m == currentMonth}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Statut</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tous les statuts</option>
+                        <option th:each="s : ${statuses}" 
+                                th:value="${s}" 
+                                th:text="${s}"
+                                th:selected="${s == currentStatus}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="year" class="form-label">Année</label>
+                    <select class="form-select" id="year" name="year">
+                        <option value="">Toutes les années</option>
+                        <option th:each="y : ${years}" 
+                                th:value="${y}" 
+                                th:text="${y}"
+                                th:selected="${y == currentYear}"></option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2">Filtrer</button>
+                    <a href="/salaries/list" class="btn btn-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Tableau des bulletins de salaire -->
+        <div class="table-responsive" th:if="${!salarySlips.empty}">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Référence</th>
+                        <th>Employé</th>
+                        <th>Période</th>
+                        <th>Statut</th>
+                        <th class="text-end">Total Brut</th>
+
+                        <th class="text-end">Net à Payer</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="slip : ${salarySlips}">
+                        <td th:text="${slip?.name}"></td>
+                        <td th:text="${slip?.employeeName}"></td>
+                        <td th:text="${slip?.startDate != null ? #temporals.format(slip.startDate, 'dd/MM/yyyy') : '-'} + ' - ' + (${slip?.endDate != null ? #temporals.format(slip.endDate, 'dd/MM/yyyy') : '-'})"></td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${'status-' + slip?.status.toLowerCase()}"
+                                  th:text="${slip?.status}"></span>
+                        </td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(slip?.grossPay, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+
+                        <td class="text-end" th:text="${#numbers.formatDecimal(slip?.netPay, 1, 'COMMA', 2, 'POINT')} + ' €'"></td>
+                        <td class="text-center">
+                            <a th:href="@{'/salaries/details?id=' + ${slip.encodedName}}" class="btn btn-sm btn-primary" title="Voir les détails">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                            <a th:href="@{/salaries/pdf/{id}(id=${slip.name})}" class="btn btn-sm btn-secondary ms-1" target="_blank" title="Télécharger PDF">
+                                <i class="bi bi-file-earmark-pdf-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Message si aucun bulletin trouvé -->
+        <div class="alert alert-info" th:if="${salarySlips.empty}">
+            <p class="mb-0">Aucun bulletin de salaire trouvé avec les critères sélectionnés.</p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>

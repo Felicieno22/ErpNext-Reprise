@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Fiche Employé')}"></head>
+<style>
+    .employee-card {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .employee-info {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .info-item {
+        flex: 1 0 50%;
+        margin-bottom: 10px;
+    }
+    .info-label {
+        font-weight: bold;
+        color: #495057;
+    }
+    .salary-table th {
+        background-color: #343a40;
+        color: white;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .status-active {
+        background-color: #28a745;
+        color: white;
+    }
+    .status-inactive {
+        background-color: #dc3545;
+        color: white;
+    }
+    .status-other {
+        background-color: #6c757d;
+        color: white;
+    }
+    .back-link {
+        margin-bottom: 20px;
+    }
+</style>
+<body>
+    <div th:replace="~{fragments/header :: navbar('employees')}"></div>
+
+    <div class="container mt-4">
+        <!-- Formulaire de génération -->
+        <form class="row g-3 mb-4" method="post" th:action="@{'/employees/' + ${employee.id} + '/generate-salary'}">
+            <div class="col-md-3">
+                <label for="startDate" class="form-label">Date début</label>
+                <input type="date" class="form-control" id="startDate" name="startDate">
+            </div>
+            <div class="col-md-3">
+                <label for="endDate" class="form-label">Date fin</label>
+                <input type="date" class="form-control" id="endDate" name="endDate">
+            </div>
+            <div class="col-md-3">
+                <label for="valeur" class="form-label">Valeur</label>
+                <input type="number" step="0.01" class="form-control" id="valeur" name="valeur" placeholder="Montant ou valeur" required>
+
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ecraser" name="ecraser">
+                <label class="form-check-label" for="ecraser">Écraser les salaires existants sur la période</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="moyenneBase" name="moyenneBase">
+                <label class="form-check-label" for="moyenneBase">Utiliser la moyenne des salaires de base de tous les employés</label>
+            </div>    
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100">Générer</button>
+            </div>
+        </form>
+        <div class="back-link">
+            <a href="/employees/list" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste des employés
+            </a>
+        </div>
+        
+        <h1 class="text-center mb-4">Fiche Employé</h1>
+        
+        <!-- Informations de l'employé -->
+        <div class="employee-card">
+            <h3 th:text="${employee.employeeName}"></h3>
+            
+            <div class="employee-info mt-3">
+                <div class="info-item">
+                    <div class="info-label">ID Employé:</div>
+                    <div th:text="${employee.id}"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Département:</div>
+                    <div th:text="${employee.department}"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Entreprise:</div>
+                    <div th:text="${employee.company}"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Poste:</div>
+                    <div th:text="${employee.designation}"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Statut:</div>
+                    <div>
+                        <span th:if="${employee.status == 'Active'}" class="status-badge status-active">Actif</span>
+                        <span th:if="${employee.status == 'Inactive'}" class="status-badge status-inactive">Inactif</span>
+                        <span th:if="${employee.status != 'Active' and employee.status != 'Inactive'}" 
+                              th:text="${employee.status}" class="status-badge status-other"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Liste des bulletins de salaire -->
+        <h2 class="mb-3">Bulletins de salaire</h2>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover salary-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Référence</th>
+                        <th>Période</th>
+                        <th>Date d'émission</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Structure</th>
+                        <th>Montant brut</th>
+                        <th>Montant net</th>
+                        <th>Valeur</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${salarySlips.empty}">
+                        <td colspan="7" class="text-center">Aucun bulletin de salaire trouvé</td>
+                    </tr>
+                    <tr th:each="slip : ${salarySlips}">
+                        <td th:text="${slip.name}"></td>
+                        <td th:text="${slip.payPeriod}"></td>
+                        <td th:text="${slip.postingDate}"></td>
+                        <td th:text="${slip.startDate}"></td>
+                        <td th:text="${slip.endDate}"></td>
+                        <td th:text="${slip.salaryStructure}"></td>
+                        <td th:text="${#numbers.formatDecimal(slip.grossPay, 1, 2) + ' ' + slip.currency}"></td>
+                        <td th:text="${#numbers.formatDecimal(slip.netPay, 1, 2) + ' ' + slip.currency}"></td>
+                        <td th:text="${slip.baseSalary != null ? #numbers.formatDecimal(slip.baseSalary, 1, 2) + ' ' + slip.currency : '-'}"></td>
+                        <td>
+                            <a th:href="@{'/salaries/details?id=' + ${slip.name}}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye-fill"></i> Voir le détail
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/footer :: scripts}"></div>
+</body>
+</html>
